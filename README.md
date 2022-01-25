@@ -19,6 +19,6 @@ Format with prettier:
 ### Deploy
 
 1. Update version number
-2. Publish to Docker Hub:
+2. Cut new version tag and push to Docker Hub:
 
-    `docker-push`
+   `just release`
