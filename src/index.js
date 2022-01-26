@@ -4,6 +4,11 @@ import "./index.css"
 import App from "./App"
 import reportWebVitals from "./reportWebVitals"
 
+// Allow iFrame navigation by setting document.domain to the host domain
+if (window !== window.top) {
+    document.domain = window.top.location.host
+}
+
 ReactDOM.render(
   <React.StrictMode>
     <App />
