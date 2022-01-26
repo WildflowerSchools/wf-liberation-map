@@ -276,7 +276,7 @@ const LiberationMap = () => {
           background: "white",
         }}
       >
-        <a href="https://www.knowthyselfinc.net/" target="_blank">
+        <a href="https://www.knowthyselfinc.net/">
           Liberation Culture map created by Koren Clark
         </a>
       </div>

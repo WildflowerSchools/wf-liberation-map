@@ -39,7 +39,11 @@ const LiberationHexagon = (props) => {
         }
       }}
       onClick={(e) => {
-        window.open("https://wildflowerschools.org", "_self")
+        if (window !== window.top) {
+          window.top.location.href("https://connected.wildflowerschools.org/")
+        } else {
+          window.open("https://connected.wildflowerschools.org/", "_self")
+        }
       }}
     >
       <Hexagon
