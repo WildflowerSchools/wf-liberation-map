@@ -6,7 +6,7 @@ import reportWebVitals from "./reportWebVitals"
 
 // Allow iFrame navigation by setting document.domain to the host domain
 if (window !== window.top) {
-    document.domain = new URL(document.referrer).hostname //window.top.location.host
+  document.domain = new URL(document.referrer).hostname //window.top.location.host
 }
 
 ReactDOM.render(

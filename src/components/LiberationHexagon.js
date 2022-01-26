@@ -40,7 +40,8 @@ const LiberationHexagon = (props) => {
       }}
       onClick={(e) => {
         if (window !== window.top) {
-          window.top.location.href("https://connected.wildflowerschools.org/")
+          //window.top.location.href("https://connected.wildflowerschools.org/")
+          window.open("https://connected.wildflowerschools.org/", "_parent")
         } else {
           window.open("https://connected.wildflowerschools.org/", "_self")
         }
