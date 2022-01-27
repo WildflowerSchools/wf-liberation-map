@@ -1,8 +1,8 @@
-import { useRef, useState } from "react"
+import { forwardRef, useImperativeHandle, useRef, useState } from "react"
 
 import { Circle } from "react-konva"
 
-const LiberationCircle = (props) => {
+const LiberationCircle = forwardRef((props, ref) => {
   const {
     x,
     y,
@@ -19,7 +19,39 @@ const LiberationCircle = (props) => {
   const circleRef = useRef(null)
 
   const [circleFill, setCircleFill] = useState(fill)
-  const setActive = useState(false)[1]
+  const [active, setActive] = useState(false)
+
+  const activate = () => {
+    setCircleFill(hoverFill)
+    setActive(true)
+    if (setActiveCircle) {
+      setActiveCircle(ref.current)
+    }
+  }
+
+  const deactivate = () => {
+    setCircleFill(fill)
+    setActive(false)
+  }
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      activate: activate,
+      deactivate: deactivate,
+      title: () => {
+        if (circleRef.current) {
+          return circleRef.current.attrs.title
+        }
+      },
+      description: () => {
+        if (circleRef.current) {
+          return circleRef.current.attrs.description
+        }
+      },
+    }),
+    [circleRef]
+  )
 
   return (
     <Circle
@@ -32,23 +64,19 @@ const LiberationCircle = (props) => {
       radius={radius}
       stroke={stroke}
       strokeWidth={strokeWidth}
-      onMouseOver={(e) => {
-        setCircleFill(hoverFill)
-        setActive(true)
-        if (setActiveCircle) {
-          setActiveCircle(circleRef)
+      onTap={() => {
+        if (!active) {
+          activate()
         }
       }}
-      onMouseOut={(e) => {
-        setCircleFill(fill)
-        setActive(false)
-        if (setActiveCircle) {
-          setActiveCircle(null)
-        }
+      onMouseOver={activate}
+      onMouseOut={() => {
+        deactivate()
+        setActiveCircle(null)
       }}
     />
   )
-}
+})
 
 LiberationCircle.defaultProps = {
   fill: "rgba(249, 249, 249, 0.1)",

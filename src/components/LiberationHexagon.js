@@ -1,16 +1,17 @@
-import { useRef, useState } from "react"
+import { forwardRef, useImperativeHandle, useRef, useState } from "react"
 
 import Hexagon from "./konva/Hexagon"
 import { Group, Text } from "react-konva"
 
-const LiberationHexagon = (props) => {
+const LiberationHexagon = forwardRef((props, ref) => {
   const {
     x,
     y,
     fill,
-    width,
+    radius,
     title,
     description,
+    url,
     stroke,
     fontSize,
     rotation,
@@ -19,39 +20,74 @@ const LiberationHexagon = (props) => {
 
   const textRef = useRef(null)
   const [strokeWidth, setStrokeWidth] = useState(0)
+  const [active, setActive] = useState(false)
+
+  const activate = (element) => {
+    const container = element.getStage().container()
+    container.style.cursor = "pointer"
+    setStrokeWidth(3)
+    setActive(true)
+    if (setActiveHexagon) {
+      setActiveHexagon(ref.current)
+    }
+  }
+
+  const deactivate = (element) => {
+    const container = element.getStage().container()
+    container.style.cursor = "default"
+    setStrokeWidth(0)
+    setActive(false)
+  }
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      activate: () => activate(textRef.current),
+      deactivate: () => deactivate(textRef.current),
+      title: () => {
+        if (textRef.current) {
+          return textRef.current.attrs.title
+        }
+      },
+      description: () => {
+        if (textRef.current) {
+          return textRef.current.attrs.description
+        }
+      },
+      getTextRef: () => textRef.current,
+    }),
+    [textRef]
+  )
+
+  const openLink = () => {
+    if (window !== window.top) {
+      window.open(url, "_parent")
+    } else {
+      window.open(url, "_self")
+    }
+  }
 
   return (
     <Group
-      onMouseOver={(e) => {
-        const container = e.target.getStage().container()
-        container.style.cursor = "pointer"
-        setStrokeWidth(3)
-        if (setActiveHexagon) {
-          setActiveHexagon(textRef)
-        }
-      }}
+      onMouseOver={(e) => activate(e.target)}
       onMouseOut={(e) => {
-        const container = e.target.getStage().container()
-        container.style.cursor = "default"
-        setStrokeWidth(0)
-        if (setActiveHexagon) {
-          setActiveHexagon(null)
-        }
+        deactivate(e.target)
+        setActiveHexagon(null)
       }}
-      onClick={(e) => {
-        if (window !== window.top) {
-          //window.top.location.href("https://connected.wildflowerschools.org/")
-          window.open("https://connected.wildflowerschools.org/", "_parent")
+      onTap={(e) => {
+        if (active) {
+          openLink()
         } else {
-          window.open("https://connected.wildflowerschools.org/", "_self")
+          activate(e.target)
         }
       }}
+      onDblTap={openLink}
+      onClick={openLink}
     >
       <Hexagon
-        // ref={el => hexRef.current = el}
         x={x}
         y={y}
-        radius={width}
+        radius={radius}
         fill={fill}
         strokeWidth={strokeWidth}
         stroke={stroke}
@@ -84,7 +120,7 @@ const LiberationHexagon = (props) => {
       />
     </Group>
   )
-}
+})
 
 LiberationHexagon.defaultProps = {
   fill: "red",

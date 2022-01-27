@@ -1,27 +1,30 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { createRef, useEffect, useMemo, useRef, useState } from "react"
 
 import { Label, Layer, Stage, Tag, Text } from "react-konva"
 
+import usePrevious from "../components/usePrevious"
 import useWindowDimensions from "../components/useWindowDimensions"
 import LiberationHexagon from "../components/LiberationHexagon"
 import LiberationCircle from "../components/LiberationCircle"
 
 const LiberationMap = () => {
-  const konvaStage = useRef(null)
   const titleTextRef = useRef(null)
   const subTitleTextRef = useRef(null)
-  const hexLayer = useRef(null)
-  const circleLayer = useRef(null)
 
-  const [hexagonWidth, setHexagonWidth] = useState(0)
-  const [circleWidth, setCircleWidth] = useState(0)
+  const [hexagonRadius, setHexagonRadius] = useState(0)
+  const [circleRadius, setCircleRadius] = useState(0)
+  const [mapWidthAndHeight, setMapWidthAndHeight] = useState(0)
+  const [mapCenter, setMapCenter] = useState({ x: 0, y: 0 })
   const [activeCircle, setActiveCircle] = useState(null)
   const [activeHexagon, setActiveHexagon] = useState(null)
+
+  const prevActiveComponents = usePrevious({ activeCircle, activeHexagon })
 
   const titleTextDefault = "Liberation\nculture"
   const [titleText, setTitleText] = useState(titleTextDefault)
   const [subTitleText, setSubTitleText] = useState(null)
 
+  const MAP_Y_OFFSET = 50
   const titleFontDefault = useMemo(() => {
     return {
       fill: "#646464",
@@ -56,6 +59,7 @@ const LiberationMap = () => {
       title: "Allyship",
       color: "#ee3a9e",
       rotation: 30,
+      url: "https://connected.wildflowerschools.org/posts/4590402-allyship-how-to-integration-liberation-culture-into-your-work-at-wildflower",
       description:
         "• Create a common understanding of what we mean by liberation, liberatory leadership, Liberatory education and equity.\n• Nourish connection and community.",
     },
@@ -63,6 +67,7 @@ const LiberationMap = () => {
       title: "Action",
       color: "#6c679f",
       rotation: 30,
+      url: "https://connected.wildflowerschools.org/posts/4590415-action-how-to-integration-liberation-culture-into-your-work-at-wildflower",
       description:
         "• Embrace evolutionary change/growth both personally and as an organization.\n• Support teachers to bring WF's liberatory purpose to life in their schools.",
     },
@@ -70,6 +75,7 @@ const LiberationMap = () => {
       title: "Awareness",
       color: "#00a0c4",
       rotation: 30,
+      url: "https://connected.wildflowerschools.org/posts/4590369-liberation-building-awareness",
       description:
         "• Raise critical consciousness and self-transformation.\n• Increase cross-cultural humility and understanding.",
     },
@@ -77,6 +83,7 @@ const LiberationMap = () => {
       title: "Analysis",
       color: "#008437",
       rotation: 30,
+      url: "https://connected.wildflowerschools.org/posts/4590377-analysis-how-to-integrate-liberation-culture-into-your-work-at-wildflower",
       description:
         "• Create a Ways of Working that disrupt domination culture at Wildflower.\n• Apply an ABAR lens to everything we do.",
     },
@@ -84,6 +91,7 @@ const LiberationMap = () => {
       title: "Accountability",
       color: "#e35351",
       rotation: 30,
+      url: "https://connected.wildflowerschools.org/posts/4590389-accountability-how-to-integrate-liberation-culture-into-your-work-at-wildflower",
       description:
         "• Prioritize the wholeness of our BIPOC partners and TL's.\n• Ensure that our growth towards liberation is reflected in and across our roles, accountabilities, projects.",
     },
@@ -91,6 +99,7 @@ const LiberationMap = () => {
     return {
       title: item.title,
       description: item.description,
+      url: item.url,
       rotation: item.rotation,
       fill: item.color,
       x:
@@ -101,6 +110,7 @@ const LiberationMap = () => {
         Math.sin((Math.PI * (90 + (360 / 5) * ii)) / 180),
     }
   })
+
   const circleDistanceFromOrigin = Math.min(
     Math.floor(windowHeight / 5.5),
     Math.floor(windowWidth / 6.5)
@@ -140,32 +150,76 @@ const LiberationMap = () => {
 
   useEffect(() => {
     if (windowWidth && windowHeight) {
-      setHexagonWidth(
-        Math.min(Math.floor(windowHeight / 8), Math.floor(windowWidth / 11))
+      const _hexagonRadius = Math.min(
+        Math.floor(windowHeight / 8),
+        Math.floor(windowWidth / 11)
       )
-      setCircleWidth(
-        Math.min(Math.floor(windowHeight / 5), Math.floor(windowWidth / 6))
+      setHexagonRadius(_hexagonRadius)
+      const _circleRadius = Math.min(
+        Math.floor(windowHeight / 5),
+        Math.floor(windowWidth / 6)
       )
+      setCircleRadius(_circleRadius)
+
+      const distanceFromOriginToFurthestHexPoint =
+        hexagonDistanceFromOrigin * 2 + _hexagonRadius * 2
+      const distanceFromOriginToFurthestCirclePoint =
+        circleDistanceFromOrigin * 2 + _circleRadius * 2
+
+      const _mapWidthAndHeight = Math.max(
+        distanceFromOriginToFurthestHexPoint,
+        distanceFromOriginToFurthestCirclePoint
+      )
+
+      setMapWidthAndHeight(_mapWidthAndHeight)
+      setMapCenter({
+        x: Math.floor(windowWidth / 2),
+        y: _mapWidthAndHeight / 2 + MAP_Y_OFFSET,
+      })
     }
   }, [windowWidth, windowHeight])
 
   useEffect(() => {
-    if (activeCircle && activeCircle.current) {
+    if (activeCircle) {
+      if (activeHexagon) {
+        activeHexagon.deactivate(activeHexagon.getTextRef())
+        setActiveHexagon(null)
+      }
+
+      if (prevActiveComponents.activeCircle) {
+        prevActiveComponents.activeCircle.deactivate()
+      }
+
       setTitleFont(titleFontLiberationCircle)
-      setTitleText(activeCircle.current.attrs.title)
-      setSubTitleText(activeCircle.current.attrs.description)
+      setTitleText(activeCircle.title())
+      setSubTitleText(activeCircle.description())
     } else {
       setTitleFont(titleFontDefault)
       setTitleText(titleTextDefault)
-      setSubTitleText(null)
+      if (!activeHexagon) {
+        setSubTitleText(null)
+      }
     }
   }, [activeCircle, titleFontDefault, titleFontLiberationCircle])
 
   useEffect(() => {
-    if (activeHexagon && activeHexagon.current) {
-      setSubTitleText(activeHexagon.current.attrs.description)
+    if (activeHexagon) {
+      if (activeCircle) {
+        activeCircle.deactivate()
+        setActiveCircle(null)
+      }
+
+      if (prevActiveComponents.activeHexagon) {
+        prevActiveComponents.activeHexagon.deactivate(
+          prevActiveComponents.activeHexagon.getTextRef()
+        )
+      }
+
+      setSubTitleText(activeHexagon.description())
     } else {
-      setSubTitleText(null)
+      if (!activeCircle) {
+        setSubTitleText(null)
+      }
     }
   }, [activeHexagon])
 
@@ -183,7 +237,7 @@ const LiberationMap = () => {
   useEffect(() => {
     if (subTitleTextRef.current) {
       setSubTitleOffset({
-        x: subTitleTextRef.current.attrs.width / 2, //windowWidth / 4,//subTitleTextRef.current.textWidth / 2,
+        x: subTitleTextRef.current.attrs.width / 2,
         y: subTitleTextRef.current.textHeight / 2,
       })
     } else {
@@ -193,33 +247,35 @@ const LiberationMap = () => {
 
   return (
     <>
-      <Stage ref={konvaStage} width={windowWidth} height={windowHeight}>
-        <Layer ref={circleLayer}>
+      <Stage width={windowWidth} height={windowHeight}>
+        <Layer>
           {circles.map((item, index) => {
             return (
               <LiberationCircle
+                ref={createRef()}
                 key={index}
-                x={Math.floor(windowWidth / 2) + item.x}
-                y={Math.floor(windowHeight / 2) + item.y}
+                x={mapCenter.x + item.x}
+                y={mapCenter.y + item.y}
                 fill={item.fill}
                 title={item.title}
                 description={item.description}
-                radius={circleWidth}
+                radius={circleRadius}
                 setActiveCircle={setActiveCircle}
               />
             )
           })}
         </Layer>
-        <Layer ref={hexLayer}>
+        <Layer>
           {hexagons.map((item, index) => {
             return (
               <LiberationHexagon
+                ref={createRef()}
                 key={index}
-                x={Math.floor(windowWidth / 2) + item.x}
-                y={Math.floor(windowHeight / 2) + item.y}
-                radius={hexagonWidth}
+                x={mapCenter.x + item.x}
+                y={mapCenter.y + item.y}
+                radius={hexagonRadius}
+                url={item.url}
                 fill={item.fill}
-                width={hexagonWidth}
                 title={item.title}
                 description={item.description}
                 fontSize={Math.min((22 * windowWidth) / 900, 22)}
@@ -232,8 +288,8 @@ const LiberationMap = () => {
         <Layer>
           <Text
             ref={titleTextRef}
-            x={Math.floor(windowWidth / 2)}
-            y={Math.floor(windowHeight / 2)}
+            x={mapCenter.x}
+            y={mapCenter.y}
             fontSize={Math.min((35 * windowWidth) / 800, 35)}
             fontStyle={"bold"}
             fontFamily={"Helvetica Neue Light"}
@@ -248,8 +304,8 @@ const LiberationMap = () => {
             text={titleText}
           />
           <Label
-            x={Math.floor(windowWidth / 2)}
-            y={Math.floor(windowHeight / 2) + circleWidth * 2 + 10}
+            x={mapCenter.x}
+            y={mapCenter.y + circleRadius * 2 + 10}
             offsetX={subTitleOffset.x}
             offsetY={subTitleOffset.y}
             visible={subTitleText != null}
