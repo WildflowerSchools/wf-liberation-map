@@ -1,4 +1,11 @@
-import { createRef, useEffect, useMemo, useRef, useState } from "react"
+import {
+  createRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 
 import { Label, Layer, Stage, Tag, Text } from "react-konva"
 
@@ -8,8 +15,9 @@ import LiberationHexagon from "../components/LiberationHexagon"
 import LiberationCircle from "../components/LiberationCircle"
 
 const LiberationMap = () => {
-  const titleTextRef = useRef(null)
   const subTitleTextRef = useRef(null)
+
+  const [titleTextNode, setTitleTextNode] = useState(null)
 
   const [hexagonRadius, setHexagonRadius] = useState(0)
   const [circleRadius, setCircleRadius] = useState(0)
@@ -17,6 +25,9 @@ const LiberationMap = () => {
   const [mapCenter, setMapCenter] = useState({ x: 0, y: 0 })
   const [activeCircle, setActiveCircle] = useState(null)
   const [activeHexagon, setActiveHexagon] = useState(null)
+
+  const [hexagons, setHexagons] = useState([])
+  const [circles, setCircles] = useState([])
 
   const prevActiveComponents = usePrevious({ activeCircle, activeHexagon })
 
@@ -47,117 +58,136 @@ const LiberationMap = () => {
   const [titleFont, setTitleFont] = useState(titleFontDefault)
   const [titleOffset, setTitleOffset] = useState({ x: 0, y: 0 })
   const [subTitleOffset, setSubTitleOffset] = useState({ x: 0, y: 0 })
+  const [mapWidth, setMapWidth] = useState(0)
+  const [mapHeight, setMapHeight] = useState(0)
 
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
 
-  const hexagonDistanceFromOrigin = Math.min(
-    Math.floor(windowHeight / 4),
-    Math.floor(windowWidth / 5)
-  )
-  const hexagons = [
-    {
-      title: "Allyship",
-      color: "#ee3a9e",
-      rotation: 30,
-      url: "https://connected.wildflowerschools.org/posts/4590402-allyship-how-to-integration-liberation-culture-into-your-work-at-wildflower",
-      description:
-        "• Create a common understanding of what we mean by liberation, liberatory leadership, Liberatory education and equity.\n• Nourish connection and community.",
-    },
-    {
-      title: "Action",
-      color: "#6c679f",
-      rotation: 30,
-      url: "https://connected.wildflowerschools.org/posts/4590415-action-how-to-integration-liberation-culture-into-your-work-at-wildflower",
-      description:
-        "• Embrace evolutionary change/growth both personally and as an organization.\n• Support teachers to bring WF's liberatory purpose to life in their schools.",
-    },
-    {
-      title: "Awareness",
-      color: "#00a0c4",
-      rotation: 30,
-      url: "https://connected.wildflowerschools.org/posts/4590369-liberation-building-awareness",
-      description:
-        "• Raise critical consciousness and self-transformation.\n• Increase cross-cultural humility and understanding.",
-    },
-    {
-      title: "Analysis",
-      color: "#008437",
-      rotation: 30,
-      url: "https://connected.wildflowerschools.org/posts/4590377-analysis-how-to-integrate-liberation-culture-into-your-work-at-wildflower",
-      description:
-        "• Create a Ways of Working that disrupt domination culture at Wildflower.\n• Apply an ABAR lens to everything we do.",
-    },
-    {
-      title: "Accountability",
-      color: "#e35351",
-      rotation: 30,
-      url: "https://connected.wildflowerschools.org/posts/4590389-accountability-how-to-integrate-liberation-culture-into-your-work-at-wildflower",
-      description:
-        "• Prioritize the wholeness of our BIPOC partners and TL's.\n• Ensure that our growth towards liberation is reflected in and across our roles, accountabilities, projects.",
-    },
-  ].map((item, ii) => {
-    return {
-      title: item.title,
-      description: item.description,
-      url: item.url,
-      rotation: item.rotation,
-      fill: item.color,
-      x:
-        hexagonDistanceFromOrigin *
-        Math.cos((Math.PI * (90 + (360 / 5) * ii)) / 180),
-      y:
-        hexagonDistanceFromOrigin *
-        Math.sin((Math.PI * (90 + (360 / 5) * ii)) / 180),
-    }
-  })
+  const getHexagons = (distanceFromOrigin) => {
+    return [
+      {
+        title: "Allyship",
+        color: "#ee3a9e",
+        rotation: 30,
+        url: "https://connected.wildflowerschools.org/posts/4590402-allyship-how-to-integration-liberation-culture-into-your-work-at-wildflower",
+        description:
+          "• Create a common understanding of what we mean by liberation, liberatory leadership, Liberatory education and equity.\n• Nourish connection and community.",
+      },
+      {
+        title: "Action",
+        color: "#6c679f",
+        rotation: 30,
+        url: "https://connected.wildflowerschools.org/posts/4590415-action-how-to-integration-liberation-culture-into-your-work-at-wildflower",
+        description:
+          "• Embrace evolutionary change/growth both personally and as an organization.\n• Support teachers to bring WF's liberatory purpose to life in their schools.",
+      },
+      {
+        title: "Awareness",
+        color: "#00a0c4",
+        rotation: 30,
+        url: "https://connected.wildflowerschools.org/posts/4590369-liberation-building-awareness",
+        description:
+          "• Raise critical consciousness and self-transformation.\n• Increase cross-cultural humility and understanding.",
+      },
+      {
+        title: "Analysis",
+        color: "#008437",
+        rotation: 30,
+        url: "https://connected.wildflowerschools.org/posts/4590377-analysis-how-to-integrate-liberation-culture-into-your-work-at-wildflower",
+        description:
+          "• Create a Ways of Working that disrupt domination culture at Wildflower.\n• Apply an ABAR lens to everything we do.",
+      },
+      {
+        title: "Accountability",
+        color: "#e35351",
+        rotation: 30,
+        url: "https://connected.wildflowerschools.org/posts/4590389-accountability-how-to-integrate-liberation-culture-into-your-work-at-wildflower",
+        description:
+          "• Prioritize the wholeness of our BIPOC partners and TL's.\n• Ensure that our growth towards liberation is reflected in and across our roles, accountabilities, projects.",
+      },
+    ].map((item, ii) => {
+      return {
+        title: item.title,
+        description: item.description,
+        url: item.url,
+        rotation: item.rotation,
+        fill: item.color,
+        x:
+          distanceFromOrigin *
+          Math.cos((Math.PI * (90 + (360 / 5) * ii)) / 180),
+        y:
+          distanceFromOrigin *
+          Math.sin((Math.PI * (90 + (360 / 5) * ii)) / 180),
+      }
+    })
+  }
 
-  const circleDistanceFromOrigin = Math.min(
-    Math.floor(windowHeight / 5.5),
-    Math.floor(windowWidth / 6.5)
-  )
-  const circles = [
-    {
-      title: "Institutional",
-      description: "• Equity centered policies & practices.",
-    },
-    {
-      title: "Ideological",
-      description:
-        "• Believes in the freedom and equality of the individual.\n• Belief in the freedom of all individuals to reach their full potential without obstruction.",
-    },
-    {
-      title: "Internal",
-      description:
-        "• Recognizing identity and difference.\n• Recognizing and owning our privilege and disadvantage.",
-    },
-    {
-      title: "Interpersonal",
-      description:
-        "• Community agreements.\n• Alliances with constructive listening.",
-    },
-  ].map((item, ii) => {
-    return {
-      title: item.title,
-      description: item.description,
-      x:
-        circleDistanceFromOrigin *
-        Math.cos((Math.PI * (90 + (360 / 4) * ii)) / 180),
-      y:
-        circleDistanceFromOrigin *
-        Math.sin((Math.PI * (90 + (360 / 4) * ii)) / 180),
-    }
-  })
+  const getCircles = (distanceFromOrigin) => {
+    return [
+      {
+        title: "Institutional",
+        description: "• Equity centered policies & practices.",
+      },
+      {
+        title: "Ideological",
+        description:
+          "• Believes in the freedom and equality of the individual.\n• Belief in the freedom of all individuals to reach their full potential without obstruction.",
+      },
+      {
+        title: "Internal",
+        description:
+          "• Recognizing identity and difference.\n• Recognizing and owning our privilege and disadvantage.",
+      },
+      {
+        title: "Interpersonal",
+        description:
+          "• Community agreements.\n• Alliances with constructive listening.",
+      },
+    ].map((item, ii) => {
+      return {
+        title: item.title,
+        description: item.description,
+        x:
+          distanceFromOrigin *
+          Math.cos((Math.PI * (90 + (360 / 4) * ii)) / 180),
+        y:
+          distanceFromOrigin *
+          Math.sin((Math.PI * (90 + (360 / 4) * ii)) / 180),
+      }
+    })
+  }
 
   useEffect(() => {
-    if (windowWidth && windowHeight) {
+    if (windowWidth < 780) {
+      setMapWidth(windowWidth)
+    } else {
+      setMapWidth(Math.floor(windowWidth * 0.75))
+    }
+    setMapHeight(windowHeight)
+  }, [windowWidth, windowHeight])
+
+  useEffect(() => {
+    if (mapWidth && mapHeight) {
+      const hexagonDistanceFromOrigin = Math.min(
+        Math.floor(mapHeight / 4),
+        Math.floor(mapWidth / 3.5)
+      )
+      setHexagons(getHexagons(hexagonDistanceFromOrigin))
+
+      const circleDistanceFromOrigin = Math.min(
+        Math.floor(mapHeight / 5.5),
+        Math.floor(mapWidth / 4.5)
+      )
+      setCircles(getCircles(circleDistanceFromOrigin))
+
       const _hexagonRadius = Math.min(
-        Math.floor(windowHeight / 8),
-        Math.floor(windowWidth / 11)
+        Math.floor(mapHeight / 8),
+        Math.floor(mapWidth / 7)
       )
       setHexagonRadius(_hexagonRadius)
       const _circleRadius = Math.min(
-        Math.floor(windowHeight / 5),
-        Math.floor(windowWidth / 6)
+        Math.floor(mapHeight / 5),
+        Math.floor(mapWidth / 4)
       )
       setCircleRadius(_circleRadius)
 
@@ -177,12 +207,12 @@ const LiberationMap = () => {
         y: _mapWidthAndHeight / 2 + MAP_Y_OFFSET,
       })
     }
-  }, [windowWidth, windowHeight])
+  }, [mapWidth, mapHeight])
 
   useEffect(() => {
     if (activeCircle) {
       if (activeHexagon) {
-        activeHexagon.deactivate(activeHexagon.getTextRef())
+        activeHexagon.deactivate()
         setActiveHexagon(null)
       }
 
@@ -210,9 +240,7 @@ const LiberationMap = () => {
       }
 
       if (prevActiveComponents.activeHexagon) {
-        prevActiveComponents.activeHexagon.deactivate(
-          prevActiveComponents.activeHexagon.getTextRef()
-        )
+        prevActiveComponents.activeHexagon.deactivate()
       }
 
       setSubTitleText(activeHexagon.description())
@@ -224,15 +252,18 @@ const LiberationMap = () => {
   }, [activeHexagon])
 
   useEffect(() => {
-    if (titleTextRef.current) {
+    if (titleTextNode !== null) {
       setTitleOffset({
-        x: titleTextRef.current.textWidth / 2,
-        y: titleTextRef.current.textHeight / 2,
+        x: titleTextNode.textWidth / 2,
+        y: titleTextNode.textHeight / 2,
       })
-    } else {
-      setTitleOffset({ x: 0, y: 0 })
     }
-  }, [titleText, titleFont])
+  }, [mapWidth, titleTextNode, titleText, titleFont])
+  const titleTextRef = useCallback((node) => {
+    if (node !== null) {
+      setTitleTextNode(node)
+    }
+  }, [])
 
   useEffect(() => {
     if (subTitleTextRef.current) {
@@ -278,7 +309,7 @@ const LiberationMap = () => {
                 fill={item.fill}
                 title={item.title}
                 description={item.description}
-                fontSize={Math.min((22 * windowWidth) / 900, 22)}
+                fontSize={Math.min((22 * mapWidth) / 700, 24)}
                 rotation={item.rotation}
                 setActiveHexagon={setActiveHexagon}
               />
@@ -290,7 +321,7 @@ const LiberationMap = () => {
             ref={titleTextRef}
             x={mapCenter.x}
             y={mapCenter.y}
-            fontSize={Math.min((35 * windowWidth) / 800, 35)}
+            fontSize={Math.min((35 * mapWidth) / 800, 35)}
             fontStyle={"bold"}
             fontFamily={"Helvetica Neue Light"}
             fill={titleFont.fill}
@@ -314,8 +345,8 @@ const LiberationMap = () => {
             <Text
               ref={subTitleTextRef}
               text={subTitleText}
-              width={windowWidth / 1.5}
-              fontSize={Math.min((18 * windowWidth) / 800, 18)}
+              width={mapWidth / 1.5}
+              fontSize={Math.min((18 * mapWidth) / 800, 18)}
               fontFamily={"Helvetica Neue Light"}
               padding={10}
               align={"center"}

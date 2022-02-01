@@ -1,4 +1,11 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react"
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react"
 
 import Hexagon from "./konva/Hexagon"
 import { Group, Text } from "react-konva"
@@ -18,45 +25,64 @@ const LiberationHexagon = forwardRef((props, ref) => {
     setActiveHexagon,
   } = props
 
-  const textRef = useRef(null)
+  const [textOffset, setTextOffset] = useState({ x: 0, y: 0 })
+  const [textNode, setTextNode] = useState(null)
+  useEffect(() => {
+    if (textNode !== null) {
+      setTextOffset({
+        x: textNode.textWidth / 2,
+        y: textNode.textHeight / 2,
+      })
+    }
+  }, [x, y, textNode])
+  const textRef = useCallback((node) => {
+    if (node !== null) {
+      setTextNode(node)
+    }
+  }, [])
+
   const [strokeWidth, setStrokeWidth] = useState(0)
   const [active, setActive] = useState(false)
 
   const activate = (element) => {
-    const container = element.getStage().container()
-    container.style.cursor = "pointer"
-    setStrokeWidth(3)
-    setActive(true)
-    if (setActiveHexagon) {
-      setActiveHexagon(ref.current)
+    if (element) {
+      const container = element.getStage().container()
+      container.style.cursor = "pointer"
+      setStrokeWidth(3)
+      setActive(true)
+      if (setActiveHexagon) {
+        setActiveHexagon(ref.current)
+      }
     }
   }
 
   const deactivate = (element) => {
-    const container = element.getStage().container()
-    container.style.cursor = "default"
-    setStrokeWidth(0)
-    setActive(false)
+    if (element) {
+      const container = element.getStage().container()
+      container.style.cursor = "default"
+      setStrokeWidth(0)
+      setActive(false)
+    }
   }
 
   useImperativeHandle(
     ref,
     () => ({
-      activate: () => activate(textRef.current),
-      deactivate: () => deactivate(textRef.current),
+      activate: () => activate(textNode),
+      deactivate: () => deactivate(textNode),
       title: () => {
-        if (textRef.current) {
-          return textRef.current.attrs.title
+        if (textNode) {
+          return textNode.attrs.title
         }
       },
       description: () => {
-        if (textRef.current) {
-          return textRef.current.attrs.description
+        if (textNode) {
+          return textNode.attrs.description
         }
       },
-      getTextRef: () => textRef.current,
+      getTextRef: () => textNode,
     }),
-    [textRef]
+    [textNode]
   )
 
   const openLink = () => {
@@ -94,27 +120,15 @@ const LiberationHexagon = forwardRef((props, ref) => {
         rotation={rotation}
       />
       <Text
-        ref={(el) => (textRef.current = el)}
+        ref={textRef}
         text={title}
         description={description}
         align="right"
         fontSize={fontSize}
         fontFamily={"Times New Roman"}
         x={x}
-        offsetX={(() => {
-          if (textRef.current) {
-            return textRef.current.textWidth / 2
-          } else {
-            return 0
-          }
-        })()}
-        offsetY={(() => {
-          if (textRef.current) {
-            return textRef.current.textHeight / 2
-          } else {
-            return 0
-          }
-        })()}
+        offsetX={textOffset.x}
+        offsetY={textOffset.y}
         y={y}
         fill="#FFF"
       />
