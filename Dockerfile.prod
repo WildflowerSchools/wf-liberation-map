@@ -6,7 +6,7 @@ WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
 COPY package.json ./
 
-RUN npm install --package-lock-only && npm ci
+RUN npm install --package-lock-only && npm prune && npm ci
 RUN npm install react-scripts@5.0.1 -g --silent
 
 COPY . ./
