@@ -3,7 +3,6 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useRef,
   useState,
 } from "react"
 
@@ -44,26 +43,29 @@ const LiberationHexagon = forwardRef((props, ref) => {
   const [strokeWidth, setStrokeWidth] = useState(0)
   const [active, setActive] = useState(false)
 
-  const activate = (element) => {
-    if (element) {
-      const container = element.getStage().container()
-      container.style.cursor = "pointer"
-      setStrokeWidth(3)
-      setActive(true)
-      if (setActiveHexagon) {
-        setActiveHexagon(ref.current)
+  const activate = useCallback(
+    (element) => {
+      if (element) {
+        const container = element.getStage().container()
+        container.style.cursor = "pointer"
+        setStrokeWidth(3)
+        setActive(true)
+        if (setActiveHexagon) {
+          setActiveHexagon(ref.current)
+        }
       }
-    }
-  }
+    },
+    [setActiveHexagon, ref]
+  )
 
-  const deactivate = (element) => {
+  const deactivate = useCallback((element) => {
     if (element) {
       const container = element.getStage().container()
       container.style.cursor = "default"
       setStrokeWidth(0)
       setActive(false)
     }
-  }
+  }, [])
 
   useImperativeHandle(
     ref,
@@ -72,7 +74,7 @@ const LiberationHexagon = forwardRef((props, ref) => {
       deactivate: () => deactivate(textNode),
       title: () => {
         if (textNode) {
-          return textNode.attrs.title
+          return textNode.attrs.text
         }
       },
       description: () => {
@@ -82,7 +84,7 @@ const LiberationHexagon = forwardRef((props, ref) => {
       },
       getTextRef: () => textNode,
     }),
-    [textNode]
+    [activate, deactivate, textNode]
   )
 
   const openLink = () => {
@@ -131,6 +133,8 @@ const LiberationHexagon = forwardRef((props, ref) => {
         offsetY={textOffset.y}
         y={y}
         fill="#FFF"
+        isInteractable={false}
+        listening={false}
       />
     </Group>
   )

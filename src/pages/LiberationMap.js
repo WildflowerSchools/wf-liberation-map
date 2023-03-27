@@ -21,7 +21,7 @@ const LiberationMap = () => {
 
   const [hexagonRadius, setHexagonRadius] = useState(0)
   const [circleRadius, setCircleRadius] = useState(0)
-  const [mapWidthAndHeight, setMapWidthAndHeight] = useState(0)
+  const [, setMapWidthAndHeight] = useState(0)
   const [mapCenter, setMapCenter] = useState({ x: 0, y: 0 })
   const [activeCircle, setActiveCircle] = useState(null)
   const [activeHexagon, setActiveHexagon] = useState(null)
@@ -38,7 +38,7 @@ const LiberationMap = () => {
   const MAP_Y_OFFSET = 50
   const titleFontDefault = useMemo(() => {
     return {
-      fill: "#646464",
+      fill: "#323232",
       shadowColor: "#888",
       shadowBlur: 2,
       shadowOffset: { x: 1, y: 1 },
@@ -47,7 +47,6 @@ const LiberationMap = () => {
   }, [])
   const titleFontLiberationCircle = useMemo(() => {
     return {
-      // fill: '#00a69c',
       fill: "#181818",
       shadowColor: "",
       shadowBlur: 0,
@@ -207,7 +206,7 @@ const LiberationMap = () => {
         y: _mapWidthAndHeight / 2 + MAP_Y_OFFSET,
       })
     }
-  }, [mapWidth, mapHeight])
+  }, [windowWidth, mapWidth, mapHeight])
 
   useEffect(() => {
     if (activeCircle) {
@@ -216,40 +215,44 @@ const LiberationMap = () => {
         setActiveHexagon(null)
       }
 
-      if (prevActiveComponents.activeCircle) {
+      if (
+        prevActiveComponents.activeCircle &&
+        prevActiveComponents.activeCircle !== activeCircle
+      ) {
         prevActiveComponents.activeCircle.deactivate()
       }
 
       setTitleFont(titleFontLiberationCircle)
       setTitleText(activeCircle.title())
       setSubTitleText(activeCircle.description())
-    } else {
-      setTitleFont(titleFontDefault)
-      setTitleText(titleTextDefault)
-      if (!activeHexagon) {
-        setSubTitleText(null)
-      }
-    }
-  }, [activeCircle, titleFontDefault, titleFontLiberationCircle])
-
-  useEffect(() => {
-    if (activeHexagon) {
+    } else if (activeHexagon) {
       if (activeCircle) {
         activeCircle.deactivate()
         setActiveCircle(null)
       }
 
-      if (prevActiveComponents.activeHexagon) {
+      if (
+        prevActiveComponents.activeHexagon &&
+        prevActiveComponents.activeHexagon !== activeHexagon
+      ) {
         prevActiveComponents.activeHexagon.deactivate()
       }
 
+      setTitleFont(titleFontLiberationCircle)
+      setTitleText(activeHexagon.title())
       setSubTitleText(activeHexagon.description())
     } else {
-      if (!activeCircle) {
-        setSubTitleText(null)
-      }
+      setTitleFont(titleFontDefault)
+      setTitleText(titleTextDefault)
+      setSubTitleText(null)
     }
-  }, [activeHexagon])
+  }, [
+    activeCircle,
+    activeHexagon,
+    titleFontDefault,
+    titleFontLiberationCircle,
+    prevActiveComponents,
+  ])
 
   useEffect(() => {
     if (titleTextNode !== null) {
@@ -363,7 +366,11 @@ const LiberationMap = () => {
           background: "white",
         }}
       >
-        <a href="https://www.knowthyselfinc.net/" target="_blank">
+        <a
+          href="https://www.knowthyselfinc.net/"
+          target="_blank"
+          rel="noreferrer"
+        >
           Liberation Culture map created by Koren Clark
         </a>
       </div>

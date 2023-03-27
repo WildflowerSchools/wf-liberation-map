@@ -6,7 +6,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 Run locally through `npm`
 
-`npm start`
+`just run-local`
 
 Run using Docker:
 
@@ -14,7 +14,7 @@ Run using Docker:
 
 Format with prettier:
 
-`npm run fmt`
+`just format`
 
 ### Deploy
 

@@ -1,4 +1,10 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react"
+import {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react"
 
 import { Circle } from "react-konva"
 
@@ -21,18 +27,18 @@ const LiberationCircle = forwardRef((props, ref) => {
   const [circleFill, setCircleFill] = useState(fill)
   const [active, setActive] = useState(false)
 
-  const activate = () => {
+  const activate = useCallback(() => {
     setCircleFill(hoverFill)
     setActive(true)
     if (setActiveCircle) {
       setActiveCircle(ref.current)
     }
-  }
+  }, [ref, hoverFill, setActiveCircle])
 
-  const deactivate = () => {
+  const deactivate = useCallback(() => {
     setCircleFill(fill)
     setActive(false)
-  }
+  }, [fill])
 
   useImperativeHandle(
     ref,
@@ -50,7 +56,7 @@ const LiberationCircle = forwardRef((props, ref) => {
         }
       },
     }),
-    [circleRef]
+    [activate, deactivate, circleRef]
   )
 
   return (

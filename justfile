@@ -6,11 +6,17 @@ system-info:
 build-production:
     @docker build -f Dockerfile.prod --load -t wildflowerschools/wf-liberation-map:{{version}} .
 
+run-local:
+    npm start
+
 run:
     docker-compose -f stack.yml up -d --build
 
 run-prod: build-production
     docker run -it --rm -p 3000:80 wildflowerschools/wf-liberation-map:{{version}}
+
+format:
+    npm run fmt
 
 tag:
     git tag {{version}} main
