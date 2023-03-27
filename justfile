@@ -4,7 +4,7 @@ system-info:
     @echo "system info: {{ os() }} ({{ os_family() }}) on {{arch()}}".
 
 build-production:
-    @docker build -f Dockerfile.prod --load -t wildflowerschools/wf-liberation-map:{{version}} .
+    @docker build -f Dockerfile.prod -t wildflowerschools/wf-liberation-map:{{version}} .
 
 run-local:
     npm start
