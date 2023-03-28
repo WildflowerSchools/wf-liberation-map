@@ -19,15 +19,8 @@ Format with prettier:
 ### Deploy
 
 1. Update version number
-2. Cut new version tag and push to Docker Hub:
+2. Cut new version tag
 
    `just release`
 
-#### Mac M1
-
-You will need to use `docker buildx` to build x86 compatible images
-
-THe *justfile* will use buildx by default, but you will need to create a new builder instance
-
-`docker buildx create --use --name multi-platform`
- 
+3. Push to Heroku

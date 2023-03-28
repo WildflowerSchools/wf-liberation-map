@@ -18,20 +18,20 @@ run-prod: build-production
 format:
     npm run fmt
 
-tag:
-    git tag {{version}} main
-    git push origin {{version}}
-
-docker-push: build-production
-    #!/usr/bin/env bash
-    if [[ `uname -m` == 'arm64' ]]; then
-      build_cmd="docker buildx build --platform linux/amd64,linux/arm64 "
-    else
-      build_cmd="docker build"
-    fi
-    `${build_cmd} -f Dockerfile.prod --push -t wildflowerschools/wf-liberation-map:{{version}} .`
-
-release: tag docker-push
+#tag:
+#    git tag {{version}} main
+#    git push origin {{version}}
+#
+#docker-push: build-production
+#    #!/usr/bin/env bash
+#    if [[ `uname -m` == 'arm64' ]]; then
+#      build_cmd="docker buildx build --platform linux/amd64,linux/arm64 "
+#    else
+#      build_cmd="docker build"
+#    fi
+#    `${build_cmd} -f Dockerfile.prod --push -t wildflowerschools/wf-liberation-map:{{version}} .`
+#
+#release: tag docker-push
 
 version:
     @echo {{version}}
