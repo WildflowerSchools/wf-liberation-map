@@ -5,9 +5,9 @@ import App from "./App"
 import reportWebVitals from "./reportWebVitals"
 
 // Allow iFrame navigation by setting document.domain to the host domain
-if (window !== window.top) {
-  document.domain = new URL(document.referrer).hostname //window.top.location.host
-}
+// if (window !== window.top) {
+//   document.domain = new URL(document.referrer).hostname //window.top.location.host
+// }
 
 const rootContainer = document.getElementById("root")
 const root = ReactDOMClient.createRoot(rootContainer)
